@@ -83,7 +83,7 @@ const Login = () => {
                   id="username"
                   placeholder="Digite seu usuário"
                   value={username}
-                  onChange={(e) => { setUsername(e.target.value); setErrors(prev => ({ ...prev, username: undefined })); }}
+                  onChange={(e) => { setUsername(e.target.value.toLowerCase()); setErrors(prev => ({ ...prev, username: undefined })); }}
                   className={`pl-10 ${errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                   disabled={isLoading}
                 />

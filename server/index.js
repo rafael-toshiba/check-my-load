@@ -116,6 +116,7 @@ app.post('/cargas/:id/finalizar', async (req, res) => {
 // Rota de Login (com Usuário e Senha)
 app.post('/login', async (req, res) => {
   const { usuario, senha } = req.body;
+  usuario = usuario.toLowerCase();
 
   try {
     // Busca o usuário pelo campo "usuario" (login)
@@ -142,6 +143,100 @@ app.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Erro no login:', err);
     res.status(500).json({ error: 'Erro interno ao tentar fazer login' });
+  }
+});
+
+// ------------------------------------------------------------------
+// ROTAS DO PAINEL ADMINISTRATIVO
+// ------------------------------------------------------------------
+
+// 1. Listar todas as cargas
+app.get('/admin/cargas', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, placa, status, criado_em, atualizado_em FROM conferencias_cargas ORDER BY atualizado_em DESC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar cargas pro admin:', err);
+    res.status(500).json({ error: 'Erro ao buscar cargas' });
+  }
+});
+
+// 2. Listar todos os usuários
+app.get('/admin/usuarios', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, nome, usuario, matricula, perfil, ativo FROM usuarios ORDER BY id ASC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar usuários pro admin:', err);
+    res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+});
+
+// 3. Criar um novo utilizador
+app.post('/admin/usuarios', async (req, res) => {
+  const { nome, usuario, matricula, senha, perfil } = req.body;
+  usuario = usuario.toLowerCase();
+
+  // Validação básica
+  if (!nome || !usuario || !senha) {
+    return res.status(400).json({ error: 'Nome, utilizador e senha são obrigatórios' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO usuarios (nome, usuario, matricula, senha, perfil) 
+       VALUES ($1, $2, $3, $4, $5) 
+       RETURNING id, nome, usuario, matricula, perfil, ativo`,
+      [nome, usuario, matricula || null, senha, perfil || 'conferente']
+    );
+    res.json({ sucesso: true, usuario: result.rows[0] });
+  } catch (err) {
+    // Código 23505 é o erro do Postgres para violação de UNIQUE (utilizador ou matrícula repetida)
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'Já existe um registo com este utilizador ou matrícula' });
+    }
+    console.error('Erro ao cadastrar utilizador:', err);
+    res.status(500).json({ error: 'Erro interno ao cadastrar utilizador' });
+  }
+});
+
+// 4. Editar/Inativar um utilizador existente
+app.put('/admin/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  let { nome, usuario, matricula, senha, perfil, ativo } = req.body;
+  usuario = usuario.toLowerCase();
+
+  try {
+    let query = '';
+    let params = [];
+
+    // Se a senha foi preenchida, atualizamos ela também. 
+    // Se veio vazia, significa que o admin não quer mudar a senha da pessoa.
+    if (senha && senha.trim() !== '') {
+      query = `UPDATE usuarios SET nome = $1, usuario = $2, matricula = $3, senha = $4, perfil = $5, ativo = $6 WHERE id = $7 RETURNING id, nome, usuario, matricula, perfil, ativo`;
+      params = [nome, usuario, matricula || null, senha, perfil, ativo, id];
+    } else {
+      query = `UPDATE usuarios SET nome = $1, usuario = $2, matricula = $3, perfil = $4, ativo = $5 WHERE id = $6 RETURNING id, nome, usuario, matricula, perfil, ativo`;
+      params = [nome, usuario, matricula || null, perfil, ativo, id];
+    }
+
+    const result = await pool.query(query, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    
+    res.json({ sucesso: true, usuario: result.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'Já existe um registo com este utilizador ou matrícula' });
+    }
+    console.error('Erro ao atualizar utilizador:', err);
+    res.status(500).json({ error: 'Erro interno ao atualizar utilizador' });
   }
 });
 
