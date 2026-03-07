@@ -44,11 +44,10 @@ const Login = () => {
         toast.success(`Bem-vindo(a), ${data.usuario.nome}!`);
         localStorage.setItem('usuario_logado', JSON.stringify(data.usuario));
         
-        // A MAGIA ACONTECE AQUI:
         if (data.usuario.perfil === 'admin') {
-          navigate('/admin'); // Manda pro painel
+          navigate('/admin', { replace: true });
         } else {
-          navigate('/cargo'); // Manda pra busca de carga
+          navigate('/cargo', { replace: true });
         }
       } else {
         toast.error(data.error || 'Matrícula ou senha inválidos');
@@ -83,7 +82,12 @@ const Login = () => {
                   id="username"
                   placeholder="Digite seu usuário"
                   value={username}
-                  onChange={(e) => { setUsername(e.target.value.toLowerCase()); setErrors(prev => ({ ...prev, username: undefined })); }}
+                  onChange={(e) => { 
+                  // O .replace(/\s/g, '') remove todos os espaços em branco digitados ou colados
+                  const valorFormatado = e.target.value.replace(/\s/g, '').toLowerCase();
+                  setUsername(valorFormatado); 
+                  setErrors(prev => ({ ...prev, username: undefined })); 
+                }}
                   className={`pl-10 ${errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                   disabled={isLoading}
                 />

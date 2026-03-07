@@ -2,13 +2,29 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Admin from '@/pages/Admin';
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Se NÃO tiver usuário no localStorage, manda pro Login
+const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
+  const auth = localStorage.getItem('usuario_logado');
+  return auth ? children : <Navigate to="/" replace />;
+};
+
+// Se JÁ TIVER usuário logado e tentar acessar o Login, manda direto pra área logada
+const PublicRoute = ({ children }: { children: React.ReactElement }) => {
+  const auth = localStorage.getItem('usuario_logado');
+  if (auth) {
+    const user = JSON.parse(auth);
+    return <Navigate to={user.perfil === 'admin' ? '/admin' : '/cargo'} replace />;
+  }
+  return children;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -17,9 +33,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/cargo" element={<Index />} />
-          <Route path="/admin" element={<Admin />} />
+          {/* Rotas Públicas */}
+          <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
+          
+          {/* Rotas Privadas (Protegidas) */}
+          <Route path="/cargo" element={<PrivateRoute><Index /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
