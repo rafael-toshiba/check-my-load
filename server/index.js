@@ -115,7 +115,7 @@ app.post('/cargas/:id/finalizar', async (req, res) => {
 
 // Rota de Login (com Usuário e Senha)
 app.post('/login', async (req, res) => {
-  const { usuario, senha } = req.body;
+  let { usuario, senha } = req.body;
   usuario = usuario.toLowerCase();
 
   try {
@@ -178,7 +178,7 @@ app.get('/admin/usuarios', async (req, res) => {
 
 // 3. Criar um novo utilizador
 app.post('/admin/usuarios', async (req, res) => {
-  const { nome, usuario, matricula, senha, perfil } = req.body;
+  let { nome, usuario, matricula, senha, perfil } = req.body;
   usuario = usuario.toLowerCase();
 
   // Validação básica
