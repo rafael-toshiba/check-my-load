@@ -78,10 +78,14 @@ export function LoadSearch({ onSearch }: LoadSearchProps) {
             <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Ex: 1251"
               value={cargoId}
               onChange={(e) => {
-                setCargoId(e.target.value);
+                // Remove qualquer coisa que não seja número
+                const apenasNumeros = e.target.value.replace(/\D/g, '');
+                setCargoId(apenasNumeros);
                 setError('');
               }}
               onKeyDown={handleKeyDown}

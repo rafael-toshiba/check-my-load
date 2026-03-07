@@ -65,7 +65,7 @@ export function VerificationModal({
   const handleManualCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setManualCode(value);
-    if (value.length > 2) {
+    if (value.length > 0) {
       validateCode(value);
     } else {
       setShowCodeError(false);
