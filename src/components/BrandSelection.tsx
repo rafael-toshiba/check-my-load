@@ -60,7 +60,6 @@ export function BrandSelection({
   getOrdersForCargo,
   isBagCodeUsed,
 }: BrandSelectionProps) {
-  // === ESTADOS DAS SACOLAS ===
   const [isBagFlowOpen, setIsBagFlowOpen] = useState(false);
   const [isBagListOpen, setIsBagListOpen] = useState(false);
 
@@ -68,7 +67,6 @@ export function BrandSelection({
   const totalChecked = brandStatuses.reduce((sum, b) => sum + b.checked, 0);
   const overallProgress = totalProducts > 0 ? (totalChecked / totalProducts) * 100 : 0;
 
-  // Verifica se existe pelo menos um produto conferido (maior que zero) na carga inteira
   const hasCheckedProducts = products.some(p => p.isChecked && p.checkedQuantity !== null && p.checkedQuantity > 0);
 
   return (
@@ -110,7 +108,6 @@ export function BrandSelection({
       {/* Content */}
       <div className="flex-1 p-4 space-y-4">
         
-        {/* === BOTÕES DE SACOLA AQUI === */}
         {hasCheckedProducts && (
           <div className="flex gap-3 mb-2">
             <Button
@@ -148,15 +145,29 @@ export function BrandSelection({
             const hasWarnings = warnings > 0;
             const isComplete = status.isComplete;
 
-            // Determine card status style
-            let borderClass = 'border-border bg-card hover:border-primary/40';
+            // === NOVA LÓGICA DE ESTILOS ===
+            let bgClass = 'bg-card';
+            let borderClass = 'border-border hover:border-primary/40';
+
+            // Define o fundo e a borda base dependendo do status
             if (isComplete) {
-              borderClass = 'border-success/40 bg-success-light';
+              bgClass = 'bg-success-light';
+              borderClass = 'border-success/40';
             } else if (hasWarnings) {
-              borderClass = 'border-warning/40 bg-warning-light';
-            } else if (isSelected) {
-              borderClass = 'border-primary bg-accent';
+              bgClass = 'bg-warning-light';
+              borderClass = 'border-warning/40';
             }
+
+            // Se estiver selecionado, sobrepõe a borda para azul
+            if (isSelected) {
+              borderClass = 'border-primary ring-1 ring-primary';
+              // Se não tiver status especial (verde/amarelo), usa o fundo azuladinho
+              if (!isComplete && !hasWarnings) {
+                bgClass = 'bg-accent';
+              }
+            }
+
+            const cardClasses = `${bgClass} ${borderClass}`;
 
             return (
               <motion.button
@@ -165,7 +176,7 @@ export function BrandSelection({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => onToggleBrand(status.brand)}
-                className={`w-full text-left rounded-xl border-2 p-4 transition-all ${borderClass}`}
+                className={`w-full text-left rounded-xl border-2 p-4 transition-all ${cardClasses}`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
@@ -183,7 +194,9 @@ export function BrandSelection({
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* === TAGS === */}
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
                     {isComplete && (
                       <Badge className="bg-success/15 text-success border-success/30 text-xs">
                         Concluído
@@ -199,8 +212,10 @@ export function BrandSelection({
                         {pending} restante{pending > 1 ? 's' : ''}
                       </Badge>
                     )}
-                    {isSelected && !isComplete && (
-                      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                    
+                    {/* Agora a tag 'Selecionada' aparece SEMPRE que a marca for clicada */}
+                    {isSelected && (
+                      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full whitespace-nowrap">
                         Selecionada
                       </span>
                     )}
@@ -241,7 +256,6 @@ export function BrandSelection({
         )}
       </div>
 
-      {/* === MODAIS DE SACOLA AQUI === */}
       <BagCreationFlow
         isOpen={isBagFlowOpen}
         onClose={() => setIsBagFlowOpen(false)}
@@ -253,7 +267,7 @@ export function BrandSelection({
         isBagCodeUsed={isBagCodeUsed}
         onCreateBag={(bag) => {
           onAddBag(bag);
-          setIsBagFlowOpen(false); // Fecha o modal após criar
+          setIsBagFlowOpen(false);
         }}
       />
 
