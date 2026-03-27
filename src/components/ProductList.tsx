@@ -40,6 +40,8 @@ interface ProductListProps {
 
 export function ProductList({
   cargoId,
+  licensePlate,
+  dock,
   products,
   bags, // <-- Aqui
   onBack,
