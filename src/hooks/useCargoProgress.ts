@@ -127,7 +127,7 @@ export function useCargoProgress() {
   const searchCargo = useCallback(async (cargoId: string, continueProgress = false): Promise<Cargo | null> => {
     try {
       // 1. Busca os dados originais do ERP/Sistema externo
-      const response = await fetch('http://192.168.255.3/api/consultar-ordem-carga', {
+      const response = await fetch('http://192.168.255.6:5000/api/consultar-ordem-carga', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ordemCarga: Number(cargoId) }) 
