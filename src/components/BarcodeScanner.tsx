@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, CameraOff, Loader2, Flashlight } from 'lucide-react'; // <-- Importe o Flashlight
+import { Camera, Loader2, Flashlight, X } from 'lucide-react'; // <-- Importamos o 'X' para o botão de fechar
 import { Button } from '@/components/ui/button';
 
 interface BarcodeScannerProps {
@@ -13,7 +13,7 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isTorchOn, setIsTorchOn] = useState(false); // <-- NOVO: Estado da lanterna
+  const [isTorchOn, setIsTorchOn] = useState(false);
 
   useEffect(() => {
     if (isActive) {
@@ -30,7 +30,7 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
   const startScanner = async () => {
     setIsLoading(true);
     setError(null);
-    setIsTorchOn(false); // Garante que começa desligada no visual
+    setIsTorchOn(false);
 
     try {
       const scanner = new Html5Qrcode('barcode-reader');
@@ -54,8 +54,7 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
       );
     } catch (err) {
       console.error('Scanner error:', err);
-      setError('Não foi possível acessar a câmera');
-      onToggle();
+      setError('Não foi possível acessar a câmera. Verifique as permissões.');
     } finally {
       setIsLoading(false);
     }
@@ -74,14 +73,12 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
     }
   };
 
-  // <-- NOVA FUNÇÃO: Ligar/Desligar Flash
   const toggleTorch = async () => {
     if (!scannerRef.current) return;
     try {
       const newState = !isTorchOn;
-      // Aplica a restrição de vídeo nativa da câmera do dispositivo
       await scannerRef.current.applyVideoConstraints({
-        advanced: [{ torch: newState }] as any // 'any' necessário pois a tipagem nativa pode ser rígida
+        advanced: [{ torch: newState }] as any
       });
       setIsTorchOn(newState);
     } catch (err) {
@@ -90,53 +87,82 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
   };
 
   return (
-    <div className="space-y-3">
-      {/* Container flex para colocar os botões lado a lado */}
-      <div className="flex gap-2"> 
+    <div className="w-full">
+      {/* BOTÃO INICIAL: Só aparece quando o scanner está desligado */}
+      {!isActive && (
         <Button
           type="button"
-          variant={isActive ? 'destructive' : 'outline'}
+          variant="outline"
           onClick={onToggle}
-          className="flex-1"
+          className="w-full"
           disabled={isLoading}
         >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : isActive ? (
-            <CameraOff className="w-4 h-4 mr-2" />
-          ) : (
-            <Camera className="w-4 h-4 mr-2" />
-          )}
-          {isLoading
-            ? 'Iniciando câmera...'
-            : isActive
-            ? 'Parar Scanner'
-            : 'Escanear Código de Barras'}
+          <Camera className="w-4 h-4 mr-2" />
+          Escanear Código de Barras
         </Button>
-
-        {/* Botão da Lanterna só aparece se a câmera estiver ativa */}
-        {isActive && !isLoading && (
-          <Button
-            type="button"
-            variant={isTorchOn ? 'default' : 'outline'}
-            onClick={toggleTorch}
-            className="px-3"
-            title="Ligar Lanterna"
-          >
-            <Flashlight className={`w-5 h-5 ${isTorchOn ? 'text-yellow-400' : ''}`} />
-          </Button>
-        )}
-      </div>
-
-      {error && (
-        <p className="text-sm text-destructive text-center">{error}</p>
       )}
 
-      <div
-        id="barcode-reader"
-        className={`overflow-hidden rounded-lg ${isActive ? 'block' : 'hidden'}`}
-        style={{ width: '100%' }}
-      />
+      {/* OVERLAY TELA CHEIA: Só aparece quando o scanner está ligado */}
+      {isActive && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-black bg-opacity-95 backdrop-blur-sm">
+          
+          {/* HEADER (Controles no Topo) */}
+          <div className="flex justify-between items-center p-4 absolute top-0 left-0 right-0 z-[110] bg-gradient-to-b from-black/80 to-transparent">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onToggle}
+              className="text-white hover:bg-white/20 hover:text-white"
+            >
+              <X className="w-6 h-6 mr-2" />
+              Fechar
+            </Button>
+
+            {!isLoading && !error && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={toggleTorch}
+                className="text-white hover:bg-white/20"
+                title="Ligar Lanterna"
+              >
+                <Flashlight className={`w-6 h-6 ${isTorchOn ? 'text-yellow-400 fill-yellow-400' : ''}`} />
+              </Button>
+            )}
+          </div>
+
+          {/* ÁREA DE LEITURA (Centro da tela) */}
+          <div className="flex-1 flex flex-col items-center justify-center w-full h-full mt-16 px-4 pb-8">
+            {isLoading && (
+              <div className="flex flex-col items-center text-white space-y-4">
+                <Loader2 className="w-10 h-10 animate-spin" />
+                <p className="text-lg font-medium">Acessando câmera...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-destructive text-destructive-foreground p-4 rounded-lg text-center max-w-sm">
+                <p className="mb-4">{error}</p>
+                <Button variant="secondary" onClick={onToggle} className="w-full">
+                  Voltar
+                </Button>
+              </div>
+            )}
+
+            {/* Container do Leitor - Fica escondido enquanto carrega ou dá erro para não quebrar o layout */}
+            <div
+              id="barcode-reader"
+              className={`w-full max-w-md overflow-hidden rounded-xl shadow-2xl bg-black ${isLoading || error ? 'hidden' : 'block'}`}
+            />
+
+            {!isLoading && !error && (
+              <div className="mt-8 text-center text-white/80">
+                <p>Centralize o código de barras na área demarcada acima</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
