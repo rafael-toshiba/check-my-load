@@ -149,6 +149,18 @@ export function useCargoProgress() {
         console.warn('Não foi possível buscar o progresso no banco local', e);
       }
 
+      // 2.5 Busca as sacolas do banco de dados
+      let sacolasDB: Bag[] = [];
+      try {
+        const sacolasResponse = await fetch(`http://192.168.255.6:3000/cargas/${cargoId}/sacolas`);
+        if (sacolasResponse.ok) {
+          sacolasDB = await sacolasResponse.json();
+          setBags(sacolasDB); // Salva no estado
+        }
+      } catch (e) {
+        console.warn('Não foi possível buscar as sacolas no banco local', e);
+      }
+
       // 3. Mescla os dados da API com o progresso do Banco
       if (progressoDB.length > 0) {
         const productsWithProgress = cargo.products.map(product => {
@@ -209,7 +221,22 @@ export function useCargoProgress() {
     } catch (error) {
       console.error('Erro ao sincronizar com banco de dados:', error);
     }
-  }, [currentCargo, products]);
+
+    if (bags.length > 0) {
+        try {
+          await fetch(`http://192.168.255.6:3000/cargas/${currentCargo.id}/sacolas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              sacolas: bags,
+              usuario_id: 1 // futuramente pegue do localStorage
+            })
+          });
+        } catch (error) {
+          console.error('Erro ao sincronizar sacolas com banco de dados:', error);
+        }
+      }
+    }, [currentCargo, products, bags]);
 
   const syncWithServer = useCallback(async () => {
     if (!currentCargo) return;
@@ -243,6 +270,12 @@ export function useCargoProgress() {
           }
           return product;
         }));
+        //Atualiza as sacolas com o que veio do banco
+        const sacolasResponse = await fetch(`http://192.168.255.6:3000/cargas/${currentCargo.id}/sacolas`);
+        if (sacolasResponse.ok) {
+          const sacolasDB = await sacolasResponse.json();
+          setBags(sacolasDB);
+        }
       }
     } catch (error) {
       // VERIFICAÇÃO DE RESILIÊNCIA: A rede falhou BEM na hora do envio?

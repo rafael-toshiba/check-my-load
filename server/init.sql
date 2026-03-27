@@ -50,3 +50,37 @@ CREATE TABLE IF NOT EXISTS fotos (
     observacao TEXT,
     capturado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Registro das Sacolas
+CREATE TABLE IF NOT EXISTS sacolas (
+    id VARCHAR(50) PRIMARY KEY, -- O código de barras da sacola
+    carga_id VARCHAR(50) REFERENCES conferencias_cargas(id),
+    usuario_id INTEGER REFERENCES usuarios(id),
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Vínculo dos Pedidos à Sacola
+CREATE TABLE IF NOT EXISTS sacolas_pedidos (
+    id SERIAL PRIMARY KEY,
+    sacola_id VARCHAR(50) REFERENCES sacolas(id) ON DELETE CASCADE,
+    pedido_id VARCHAR(50) NOT NULL,
+    UNIQUE(sacola_id, pedido_id)
+);
+
+-- Produtos dentro da Sacola
+CREATE TABLE IF NOT EXISTS sacolas_produtos (
+    id SERIAL PRIMARY KEY,
+    sacola_id VARCHAR(50) REFERENCES sacolas(id) ON DELETE CASCADE,
+    produto_codigo VARCHAR(50) NOT NULL,
+    descricao TEXT,
+    quantidade INTEGER NOT NULL
+);
+
+-- Vínculo de Fotos à Sacola
+CREATE TABLE IF NOT EXISTS sacolas_fotos (
+    id VARCHAR(100) PRIMARY KEY,
+    sacola_id VARCHAR(50) REFERENCES sacolas(id) ON DELETE CASCADE,
+    imagem_base64 TEXT NOT NULL,
+    observacao TEXT,
+    capturado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -147,6 +147,107 @@ app.post('/login', async (req, res) => {
 });
 
 // ------------------------------------------------------------------
+// ROTAS DE SACOLAS
+// ------------------------------------------------------------------
+
+// Buscar sacolas da carga
+app.get('/cargas/:id/sacolas', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const sacolasResult = await pool.query('SELECT * FROM sacolas WHERE carga_id = $1', [id]);
+    const sacolas = [];
+
+    for (const row of sacolasResult.rows) {
+      const pedidosResult = await pool.query('SELECT pedido_id FROM sacolas_pedidos WHERE sacola_id = $1', [row.id]);
+      const produtosResult = await pool.query('SELECT produto_codigo as code, descricao as description, quantidade as quantity FROM sacolas_produtos WHERE sacola_id = $1', [row.id]);
+      const fotosResult = await pool.query('SELECT id, imagem_base64 as "imageData", observacao as observation, capturado_em as "capturedAt" FROM sacolas_fotos WHERE sacola_id = $1', [row.id]);
+
+      // Busca quais pedidos deram origem a cada produto na sacola
+      const produtosFormatados = produtosResult.rows.map(p => ({
+         ...p,
+         ordersOrigin: pedidosResult.rows.map(ped => ped.pedido_id) // Simplificação: vincula todos os pedidos da sacola aos produtos
+      }));
+
+      sacolas.push({
+        id: row.id,
+        createdAt: row.criado_em,
+        orders: pedidosResult.rows.map(p => p.pedido_id),
+        products: produtosFormatados,
+        photos: fotosResult.rows
+      });
+    }
+
+    res.json(sacolas);
+  } catch (err) {
+    console.error('Erro ao buscar sacolas:', err);
+    res.status(500).json({ error: 'Erro ao buscar sacolas' });
+  }
+});
+
+// Salvar/Sincronizar sacolas da carga
+app.post('/cargas/:id/sacolas', async (req, res) => {
+  const { id } = req.params;
+  const { sacolas, usuario_id } = req.body;
+
+  try {
+    await pool.query('BEGIN');
+
+    // Garante que a carga existe
+    await pool.query(
+      `INSERT INTO conferencias_cargas (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`,
+      [id]
+    );
+
+    for (const sacola of sacolas) {
+      // 1. Insere a sacola
+      await pool.query(
+        `INSERT INTO sacolas (id, carga_id, usuario_id, criado_em)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (id) DO NOTHING`,
+        [sacola.id, id, usuario_id || 1, sacola.createdAt]
+      );
+
+      // 2. Insere os pedidos da sacola
+      for (const pedidoId of sacola.orders) {
+        await pool.query(
+          `INSERT INTO sacolas_pedidos (sacola_id, pedido_id)
+           VALUES ($1, $2)
+           ON CONFLICT (sacola_id, pedido_id) DO NOTHING`,
+          [sacola.id, pedidoId]
+        );
+      }
+
+      // 3. Insere os produtos (limpa antes para evitar duplicidade na sincronização)
+      await pool.query(`DELETE FROM sacolas_produtos WHERE sacola_id = $1`, [sacola.id]);
+      for (const prod of sacola.products) {
+        await pool.query(
+          `INSERT INTO sacolas_produtos (sacola_id, produto_codigo, descricao, quantidade)
+           VALUES ($1, $2, $3, $4)`,
+          [sacola.id, prod.code, prod.description, prod.quantity]
+        );
+      }
+
+      // 4. Insere as fotos
+      for (const foto of sacola.photos) {
+         await pool.query(
+          `INSERT INTO sacolas_fotos (id, sacola_id, imagem_base64, observacao, capturado_em)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (id) DO NOTHING`,
+          [foto.id, sacola.id, foto.imageData, foto.observation || null, foto.capturedAt || new Date()]
+        );
+      }
+    }
+
+    await pool.query('COMMIT');
+    res.json({ sucesso: true });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Erro ao salvar sacolas:', err);
+    res.status(500).json({ error: 'Erro ao salvar sacolas' });
+  }
+});
+
+// ------------------------------------------------------------------
 // ROTAS DO PAINEL ADMINISTRATIVO
 // ------------------------------------------------------------------
 
