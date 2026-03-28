@@ -12,13 +12,13 @@ const queryClient = new QueryClient();
 
 // Se NÃO tiver usuário no localStorage, manda pro Login
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
-  const auth = localStorage.getItem('usuario_logado');
+  const auth = localStorage.getItem('usuario');
   return auth ? children : <Navigate to="/" replace />;
 };
 
 // Se JÁ TIVER usuário logado e tentar acessar o Login, manda direto pra área logada
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
-  const auth = localStorage.getItem('usuario_logado');
+  const auth = localStorage.getItem('usuario');
   if (auth) {
     const user = JSON.parse(auth);
     return <Navigate to={user.perfil === 'admin' ? '/admin' : '/cargo'} replace />;
