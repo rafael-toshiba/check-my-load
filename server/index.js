@@ -22,7 +22,7 @@ app.get('/cargas/:id/progresso', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'SELECT produto_codigo, quantidade_conferida, marca FROM conferencias_produtos WHERE carga_id = $1',
+      'SELECT produto_codigo, quantidade_conferida::FLOAT as quantidade_conferida, marca FROM conferencias_produtos WHERE carga_id = $1',
       [id]
     );
     res.json(result.rows);
@@ -159,7 +159,7 @@ app.get('/cargas/:id/sacolas', async (req, res) => {
 
     for (const row of sacolasResult.rows) {
       const pedidosResult = await pool.query('SELECT pedido_id FROM sacolas_pedidos WHERE sacola_id = $1', [row.id]);
-      const produtosResult = await pool.query('SELECT produto_codigo as code, descricao as description, quantidade as quantity FROM sacolas_produtos WHERE sacola_id = $1', [row.id]);
+      const produtosResult = await pool.query('SELECT produto_codigo as code, descricao as description, quantidade::FLOAT as quantity FROM sacolas_produtos WHERE sacola_id = $1', [row.id]);
       const fotosResult = await pool.query('SELECT id, imagem_base64 as "imageData", observacao as observation, capturado_em as "capturedAt" FROM sacolas_fotos WHERE sacola_id = $1', [row.id]);
 
       // Busca quais pedidos deram origem a cada produto na sacola
@@ -347,7 +347,7 @@ app.get('/admin/cargas/:id', async (req, res) => {
   try {
     // Busca os produtos conferidos e o nome de quem conferiu
     const produtos = await pool.query(
-      `SELECT cp.produto_codigo, cp.quantidade_conferida, cp.marca, cp.atualizado_em, u.nome as conferente
+      `SELECT cp.produto_codigo, cp.quantidade_conferida::FLOAT as quantidade_conferida, cp.marca, cp.atualizado_em, u.nome as conferente
        FROM conferencias_produtos cp
        LEFT JOIN usuarios u ON cp.conferido_por_usuario_id = u.id
        WHERE cp.carga_id = $1

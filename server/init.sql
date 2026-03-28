@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS conferencias_produtos (
     id SERIAL PRIMARY KEY,
     carga_id VARCHAR(50) REFERENCES conferencias_cargas(id),
     produto_codigo VARCHAR(50) NOT NULL,
-    quantidade_conferida INTEGER NOT NULL,
+    quantidade_conferida NUMERIC(10,3) NOT NULL,
     conferido_por_usuario_id INTEGER REFERENCES usuarios(id),
     marca VARCHAR(100),
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS sacolas_produtos (
     sacola_id VARCHAR(50) REFERENCES sacolas(id) ON DELETE CASCADE,
     produto_codigo VARCHAR(50) NOT NULL,
     descricao TEXT,
-    quantidade INTEGER NOT NULL
+    quantidade NUMERIC(10,3) NOT NULL
 );
 
 -- Vínculo de Fotos à Sacola
