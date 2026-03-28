@@ -440,16 +440,47 @@ export function useCargoProgress() {
   }, [products]);
 
   const addBag = useCallback((bag: Bag) => {
-    setBags(prev => [...prev, bag]);
-  }, []);
+    setBags(prev => {
+      const newBags = [...prev, bag];
+      // Dispara o salvamento no banco em segundo plano imediatamente
+      if (currentCargo) {
+        fetch(`http://192.168.255.6:3000/cargas/${currentCargo.id}/sacolas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sacolas: newBags, usuario_id: 1 })
+        }).catch(e => console.error('Erro ao salvar sacola no banco:', e));
+      }
+      return newBags;
+    });
+  }, [currentCargo]);
 
   const updateBag = useCallback((bagId: string, updates: Partial<Bag>) => {
-    setBags(prev => prev.map(b => b.id === bagId ? { ...b, ...updates } : b));
-  }, []);
+    setBags(prev => {
+      const newBags = prev.map(b => b.id === bagId ? { ...b, ...updates } : b);
+      if (currentCargo) {
+        fetch(`http://192.168.255.6:3000/cargas/${currentCargo.id}/sacolas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sacolas: newBags, usuario_id: 1 })
+        }).catch(e => console.error('Erro ao atualizar sacola no banco:', e));
+      }
+      return newBags;
+    });
+  }, [currentCargo]);
 
   const removeBag = useCallback((bagId: string) => {
-    setBags(prev => prev.filter(b => b.id !== bagId));
-  }, []);
+    setBags(prev => {
+      const newBags = prev.filter(b => b.id !== bagId);
+      if (currentCargo) {
+        fetch(`http://192.168.255.6:3000/cargas/${currentCargo.id}/sacolas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sacolas: newBags, usuario_id: 1 })
+        }).catch(e => console.error('Erro ao remover sacola no banco:', e));
+      }
+      return newBags;
+    });
+  }, [currentCargo]);
 
   const isBagCodeUsed = useCallback((code: string): boolean => {
     return bags.some(b => b.id === code);
