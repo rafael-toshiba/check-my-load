@@ -131,17 +131,19 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
             )}
           </div>
 
-          {/* ÁREA DE LEITURA (Centro da tela) */}
-          <div className="flex-1 flex flex-col items-center justify-center w-full h-full mt-16 px-4 pb-8">
+         {/* ÁREA DE LEITURA (Centro da tela) */}
+          <div className="flex-1 flex flex-col items-center justify-center w-full h-full mt-16 px-4 pb-8 relative">
+            
+            {/* Overlay de Loading posicionado de forma absoluta sobre a área preta */}
             {isLoading && (
-              <div className="flex flex-col items-center text-white space-y-4">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-white space-y-4">
                 <Loader2 className="w-10 h-10 animate-spin" />
                 <p className="text-lg font-medium">Acessando câmera...</p>
               </div>
             )}
 
             {error && (
-              <div className="bg-destructive text-destructive-foreground p-4 rounded-lg text-center max-w-sm">
+              <div className="bg-destructive text-destructive-foreground p-4 rounded-lg text-center max-w-sm z-10">
                 <p className="mb-4">{error}</p>
                 <Button variant="secondary" onClick={onToggle} className="w-full">
                   Voltar
@@ -149,10 +151,11 @@ export function BarcodeScanner({ onScan, isActive, onToggle }: BarcodeScannerPro
               </div>
             )}
 
-            {/* Container do Leitor - Fica escondido enquanto carrega ou dá erro para não quebrar o layout */}
+            {/* O Container do Leitor agora só fica hidden em caso de ERRO. 
+                Durante o loading ele fica visível (como um bloco preto) para calcular o tamanho do vídeo corretamente */}
             <div
               id="barcode-reader"
-              className={`w-full max-w-md overflow-hidden rounded-xl shadow-2xl bg-black ${isLoading || error ? 'hidden' : 'block'}`}
+              className={`w-full max-w-md overflow-hidden rounded-xl shadow-2xl bg-black ${error ? 'hidden' : 'block'} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
             />
 
             {!isLoading && !error && (
