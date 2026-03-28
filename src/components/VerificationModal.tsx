@@ -195,6 +195,8 @@ export function VerificationModal({
                   ) : (
                     <div className="space-y-2">
                       <Input
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         placeholder="Digite o código do produto ou código de barras"
                         value={manualCode}
                         onChange={handleManualCodeChange}
