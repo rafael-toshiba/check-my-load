@@ -20,6 +20,8 @@ export interface Cargo {
   id: string;
   licensePlate: string;
   dock?: string | null;
+  horaSaida?: string | null; // Data e Hora (pode ser string ISO)
+  seqCarga?: number | null;  // Inteiro
   products: Product[];
 }
 

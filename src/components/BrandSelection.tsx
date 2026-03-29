@@ -4,14 +4,13 @@ import { ArrowLeft, Save, Truck, CheckCircle, Package, ArrowRight, Camera, Alert
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Product, BrandStatus, Bag, OrderInfo } from '@/types/cargo';
+import { Product, BrandStatus, Bag, OrderInfo, Cargo } from '@/types/cargo';
 import { BagCreationFlow } from './bags/BagCreationFlow';
 import { BagListModal } from './bags/BagListModal';
+import { CargoHeader } from '@/components/CargoHeader';
 
 interface BrandSelectionProps {
-  cargoId: string;
-  licensePlate: string;
-  dock?: string | null;
+  cargo: Cargo;
   brandStatuses: BrandStatus[];
   selectedBrands: string[];
   products: Product[];
@@ -42,9 +41,7 @@ function getBrandPending(products: Product[], brand: string): number {
 }
 
 export function BrandSelection({
-  cargoId,
-  licensePlate,
-  dock,
+  cargo, // <- Recebe o objeto completo
   brandStatuses,
   selectedBrands,
   products,
@@ -83,24 +80,7 @@ export function BrandSelection({
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <h1 className="font-bold text-lg">Carga #{cargoId}</h1>
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Truck className="w-3.5 h-3.5" />
-                <span>{licensePlate}</span>
-              </div>
-              
-              {/* === NOVA EXIBIÇÃO DA DOCA === */}
-              {dock !== undefined && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold">Doca:</span>
-                    <span>{dock || '-'}</span> 
-                  </div>
-                </>
-              )}
-            </div>
+            <h1 className="font-bold text-lg">Carga #{cargo.id}</h1>
           </div>
           <button
             onClick={onSave}
@@ -122,6 +102,9 @@ export function BrandSelection({
 
       {/* Content */}
       <div className="flex-1 p-4 space-y-4">
+        
+        {/* === NOVO CABEÇALHO COMPACTO AQUI === */}
+        <CargoHeader cargo={cargo} />
         
         {hasCheckedProducts && (
           <div className="flex gap-3 mb-2">

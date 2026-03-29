@@ -11,6 +11,9 @@ export const cargos: Cargo[] = [
   {
     id: "1251",
     licensePlate: "SAI4D45",
+    dock: "12", // Exemplo de doca
+    horaSaida: "2026-03-29T18:00:00", // Formato ISO para facilitar formatação
+    seqCarga: 4589, // Exemplo de sequência
     products: [
       // ACO CEARENSE
       {

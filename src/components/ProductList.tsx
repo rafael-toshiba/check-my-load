@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Save, CheckCircle, AlertCircle, Package, ArrowRight, ShoppingBag, Eye, PackageSearch, CornerDownLeft, Truck } from 'lucide-react';
-import { Product, Bag, ActionType } from '@/types/cargo';
+import { Cargo, Product, Bag, ActionType } from '@/types/cargo';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from './ProductCard';
 import { VerificationModal } from './VerificationModal';
@@ -13,11 +13,10 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { useProductFilters } from '@/hooks/useProductFilters';
 import { toast } from 'sonner';
 import { ActionHistoryEntry } from '@/types/cargo';
+import { CargoHeader } from './CargoHeader';
 
 interface ProductListProps {
-  cargoId: string;
-  licensePlate?: string;
-  dock?: string | null;
+  cargo: Cargo;
   products: Product[];
   bags: Bag[]; // <-- Mantido para o filtro
   onBack: () => void;
@@ -39,9 +38,7 @@ interface ProductListProps {
 }
 
 export function ProductList({
-  cargoId,
-  licensePlate,
-  dock,
+  cargo,
   products,
   bags, // <-- Aqui
   onBack,
@@ -167,34 +164,27 @@ export function ProductList({
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
+     {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b shadow-sm">
         <div className="flex items-center justify-between p-4">
+          
+          {/* Lado Esquerdo: Botão Voltar */}
           <button
             onClick={onBack}
             className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+          
+          {/* Centro: ID da Carga e Progresso de Marcas */}
           <div className="text-center">
-            <h1 className="font-bold text-lg">Carga #{cargoId}</h1>
-            
-            {/* === NOVA EXIBIÇÃO DA PLACA E DOCA === */}
-            {(licensePlate || dock !== undefined) && (
-              <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground mb-0.5">
-                {licensePlate && (
-                   <span className="flex items-center gap-1"><Truck className="w-3 h-3"/> {licensePlate}</span>
-                )}
-                {dock !== undefined && (
-                   <span className="flex items-center gap-1"><span className="font-semibold">Doca:</span> {dock || '-'}</span>
-                )}
-              </div>
-            )}
-            
-            <p className="text-[11px] text-muted-foreground">
+            <h1 className="font-bold text-lg">Carga #{cargo.id}</h1>
+            <p className="text-[11px] text-muted-foreground mt-1">
               {brandLabel ? `${brandLabel} · ` : ''}{stats.checked}/{stats.total} conferidos
             </p>
           </div>
+
+          {/* Lado Direito: Histórico e Botão Salvar (Recuperados!) */}
           <div className="flex items-center gap-1">
             <ActionHistoryDrawer
               history={actionHistory}
@@ -207,6 +197,7 @@ export function ProductList({
               <Save className="w-5 h-5" />
             </button>
           </div>
+          
         </div>
 
         {/* Progress Bar */}
@@ -220,6 +211,11 @@ export function ProductList({
           />
         </div>
       </header>
+
+      {/* === NOVO CABEÇALHO COMPACTO AQUI === */}
+      <div className="p-4 pb-0">
+        <CargoHeader cargo={cargo} />
+      </div>
 
       {/* Search Bar */}
       <ProductSearchBar

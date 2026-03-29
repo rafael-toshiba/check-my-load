@@ -153,9 +153,7 @@ const Index = () => {
   if (currentStep === 'brand-selection') {
     return (
       <BrandSelection
-        cargoId={currentCargo.id}
-        licensePlate={currentCargo.licensePlate}
-        dock={currentCargo.dock}
+        cargo={currentCargo} // Passa o objeto todo!
         brandStatuses={getBrandStatuses()}
         selectedBrands={selectedBrands}
         products={products}
@@ -187,9 +185,7 @@ const Index = () => {
 
   return (
     <ProductList
-      cargoId={currentCargo.id}
-      licensePlate={currentCargo.licensePlate}
-      dock={currentCargo.dock}
+      cargo={currentCargo}
       products={brandProducts}
       bags={bags}
       getProductAvailability={getProductAvailability}
