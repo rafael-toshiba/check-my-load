@@ -165,10 +165,11 @@ export function ProductList({
   return (
     <div className="min-h-screen flex flex-col">
      {/* Header */}
+      {/* Header */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b shadow-sm">
         <div className="flex items-center justify-between p-4">
           
-          {/* Lado Esquerdo: Botão Voltar */}
           <button
             onClick={onBack}
             className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
@@ -176,15 +177,25 @@ export function ProductList({
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          {/* Centro: ID da Carga e Progresso de Marcas */}
           <div className="text-center">
             <h1 className="font-bold text-lg">Carga #{cargo.id}</h1>
-            <p className="text-[11px] text-muted-foreground mt-1">
+            
+            {(cargo.licensePlate || cargo.dock !== undefined) && (
+              <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                {cargo.licensePlate && (
+                   <span className="flex items-center gap-1"><Truck className="w-3 h-3"/> {cargo.licensePlate}</span>
+                )}
+                {cargo.dock !== undefined && (
+                   <span className="flex items-center gap-1"><span className="font-semibold">Doca:</span> {cargo.dock || '-'}</span>
+                )}
+              </div>
+            )}
+            
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {brandLabel ? `${brandLabel} · ` : ''}{stats.checked}/{stats.total} conferidos
             </p>
           </div>
 
-          {/* Lado Direito: Histórico e Botão Salvar (Recuperados!) */}
           <div className="flex items-center gap-1">
             <ActionHistoryDrawer
               history={actionHistory}

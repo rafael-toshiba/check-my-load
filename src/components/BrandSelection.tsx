@@ -71,6 +71,7 @@ export function BrandSelection({
   return (
     <div className="min-h-screen flex flex-col bg-background relative">
       {/* Header */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b shadow-sm">
         <div className="flex items-center justify-between p-4">
           <button
@@ -79,9 +80,21 @@ export function BrandSelection({
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+          
           <div className="text-center">
             <h1 className="font-bold text-lg">Carga #{cargo.id}</h1>
+            {(cargo.licensePlate || cargo.dock !== undefined) && (
+              <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                {cargo.licensePlate && (
+                   <span className="flex items-center gap-1"><Truck className="w-3 h-3"/> {cargo.licensePlate}</span>
+                )}
+                {cargo.dock !== undefined && (
+                   <span className="flex items-center gap-1"><span className="font-semibold">Doca:</span> {cargo.dock || '-'}</span>
+                )}
+              </div>
+            )}
           </div>
+
           <button
             onClick={onSave}
             className="p-2 rounded-lg hover:bg-muted transition-colors text-primary"
